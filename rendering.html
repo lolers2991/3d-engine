@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Rendering Engine</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/loaders/OBJLoader.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 1, 1).normalize();
+        scene.add(light);
+
+        // Load OBJ model
+        const loader = new THREE.OBJLoader();
+        loader.load(
+            // Path to your OBJ file
+            'redering engine/tinker.obj', 
+            function (object) {
+                scene.add(object);
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.error('An error occurred while loading the OBJ file:', error);
+            }
+        );
+
+        // Camera position
+        camera.position.z = 5;
+
+        // Orbit controls
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', function (event) {
+            isDragging = true;
+        });
+
+        document.addEventListener('mousemove', function (event) {
+            if (isDragging) {
+                const deltaMove = {
+                    x: event.offsetX - previousMousePosition.x,
+                    y: event.offsetY - previousMousePosition.y
+                };
+
+                const rotationSpeed = 0.005;
+                scene.rotation.y += deltaMove.x * rotationSpeed;
+                scene.rotation.x += deltaMove.y * rotationSpeed;
+            }
+
+            previousMousePosition = {
+                x: event.offsetX,
+                y: event.offsetY
+            };
+        });
+
+        document.addEventListener('mouseup', function () {
+            isDragging = false;
+        });
+
+        // Zoom controls
+        document.addEventListener('wheel', function (event) {
+            camera.position.z += event.deltaY * 0.01;
+        });
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
